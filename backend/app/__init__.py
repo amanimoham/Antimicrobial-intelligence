@@ -1,0 +1,1 @@
+"""Antibacterial platform backend."""

@@ -1,0 +1,4 @@
+sample_id,sample_type,collection_date,bacteria_name,batch_id
+SMP-001,Blood,2026-04-18,Escherichia coli,4
+SMP-002,Urine,2026-04-18,Klebsiella pneumoniae,4
+SMP-003,Sputum,2026-04-18,Staphylococcus aureus,4
