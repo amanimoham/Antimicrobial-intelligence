@@ -1,0 +1,209 @@
+{
+  "rows_used": 1000,
+  "feature_count": 14,
+  "features": [
+    "sample_type",
+    "pathogen",
+    "source",
+    "value",
+    "molecular_weight",
+    "logp",
+    "toxicity_score",
+    "synthesizability_score",
+    "date_year",
+    "date_month",
+    "date_dayofweek",
+    "value_x_logp",
+    "toxicity_x_synth",
+    "mw_over_logp"
+  ],
+  "split": {
+    "train_rows": 700,
+    "val_rows": 150,
+    "test_rows": 150
+  },
+  "comparisons": {
+    "activity_score": {
+      "leaderboard": [
+        {
+          "model": "rf",
+          "validation": {
+            "mae": 0.3669046666666669,
+            "rmse": 0.44691784979643207,
+            "r2": 0.7955625560445304
+          },
+          "tuning": {
+            "mode": "random_search_cv",
+            "best_params": {
+              "model__n_estimators": 300,
+              "model__min_samples_split": 2,
+              "model__min_samples_leaf": 1,
+              "model__max_features": null,
+              "model__max_depth": null
+            },
+            "best_cv_rmse": 0.5036487491262347
+          }
+        },
+        {
+          "model": "gbr",
+          "validation": {
+            "mae": 0.2515854243863484,
+            "rmse": 0.30906086919956144,
+            "r2": 0.9022328209148114
+          },
+          "tuning": {
+            "mode": "random_search_cv",
+            "best_params": {
+              "model__subsample": 0.7,
+              "model__n_estimators": 250,
+              "model__min_samples_split": 4,
+              "model__max_depth": 2,
+              "model__learning_rate": 0.1
+            },
+            "best_cv_rmse": 0.31934844882607755
+          }
+        }
+      ],
+      "selected": "gbr",
+      "tuning": {
+        "mode": "random_search_cv",
+        "best_params": {
+          "model__subsample": 0.7,
+          "model__n_estimators": 250,
+          "model__min_samples_split": 4,
+          "model__max_depth": 2,
+          "model__learning_rate": 0.1
+        },
+        "best_cv_rmse": 0.31934844882607755
+      }
+    },
+    "mic_score": {
+      "leaderboard": [
+        {
+          "model": "rf",
+          "validation": {
+            "mae": 0.39253933333333324,
+            "rmse": 0.491336204929042,
+            "r2": 0.7857504947115559
+          },
+          "tuning": {
+            "mode": "random_search_cv",
+            "best_params": {
+              "model__n_estimators": 300,
+              "model__min_samples_split": 2,
+              "model__min_samples_leaf": 1,
+              "model__max_features": null,
+              "model__max_depth": null
+            },
+            "best_cv_rmse": 0.6152669103134595
+          }
+        },
+        {
+          "model": "gbr",
+          "validation": {
+            "mae": 0.3202352340541507,
+            "rmse": 0.4044892005616956,
+            "r2": 0.8547968106863639
+          },
+          "tuning": {
+            "mode": "random_search_cv",
+            "best_params": {
+              "model__subsample": 0.7,
+              "model__n_estimators": 250,
+              "model__min_samples_split": 4,
+              "model__max_depth": 2,
+              "model__learning_rate": 0.1
+            },
+            "best_cv_rmse": 0.48765262568645157
+          }
+        }
+      ],
+      "selected": "gbr",
+      "tuning": {
+        "mode": "random_search_cv",
+        "best_params": {
+          "model__subsample": 0.7,
+          "model__n_estimators": 250,
+          "model__min_samples_split": 4,
+          "model__max_depth": 2,
+          "model__learning_rate": 0.1
+        },
+        "best_cv_rmse": 0.48765262568645157
+      }
+    },
+    "resistance_score": {
+      "leaderboard": [
+        {
+          "model": "rf",
+          "validation": {
+            "mae": 0.028182999999999958,
+            "rmse": 0.03615121918439978,
+            "r2": 0.8980472198733161
+          },
+          "tuning": {
+            "mode": "random_search_cv",
+            "best_params": {
+              "model__n_estimators": 300,
+              "model__min_samples_split": 2,
+              "model__min_samples_leaf": 1,
+              "model__max_features": null,
+              "model__max_depth": null
+            },
+            "best_cv_rmse": 0.03835247451947067
+          }
+        },
+        {
+          "model": "gbr",
+          "validation": {
+            "mae": 0.024957665776038227,
+            "rmse": 0.029825659539563076,
+            "r2": 0.930604183727024
+          },
+          "tuning": {
+            "mode": "random_search_cv",
+            "best_params": {
+              "model__subsample": 0.7,
+              "model__n_estimators": 250,
+              "model__min_samples_split": 4,
+              "model__max_depth": 2,
+              "model__learning_rate": 0.1
+            },
+            "best_cv_rmse": 0.03373495986406241
+          }
+        }
+      ],
+      "selected": "gbr",
+      "tuning": {
+        "mode": "random_search_cv",
+        "best_params": {
+          "model__subsample": 0.7,
+          "model__n_estimators": 250,
+          "model__min_samples_split": 4,
+          "model__max_depth": 2,
+          "model__learning_rate": 0.1
+        },
+        "best_cv_rmse": 0.03373495986406241
+      }
+    }
+  },
+  "test_scores": {
+    "activity_score": {
+      "selected": "gbr",
+      "mae": 0.24700385350571352,
+      "rmse": 0.2965345179212071,
+      "r2": 0.9328037226537932
+    },
+    "mic_score": {
+      "selected": "gbr",
+      "mae": 0.4068394125921909,
+      "rmse": 0.4913568398155299,
+      "r2": 0.8483856711516322
+    },
+    "resistance_score": {
+      "selected": "gbr",
+      "mae": 0.024911405129511604,
+      "rmse": 0.030971098501566104,
+      "r2": 0.9143624957166927
+    }
+  }
+}

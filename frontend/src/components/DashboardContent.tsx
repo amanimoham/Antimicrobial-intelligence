@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { ApiError, api } from "@/lib/api";
+import { subscribeDataUpdated, publishDataUpdated } from "@/lib/data-refresh";
 import { DashboardCard } from "@/components/DashboardCard";
 import { DataManagementSection } from "@/components/DataManagementSection";
 import { GenerateCandidatesCard } from "@/components/GenerateCandidatesCard";
@@ -31,38 +32,17 @@ const defaultProgress: ProgressPoint[] = [
   { name: "Sun", value: 72 },
 ];
 
-const demoPareto: ParetoPoint[] = [
-  { x: 0.42, y: 0.55, group: "A", label: "d1" },
-  { x: 0.48, y: 0.48, group: "A", label: "d2" },
-  { x: 0.62, y: 0.36, group: "B", label: "d3" },
-  { x: 0.71, y: 0.32, group: "B", label: "d4" },
-  { x: 0.55, y: 0.44, group: "B", label: "d5" },
-];
-
-export function DashboardContent({ useStaticFallback = false }: { useStaticFallback?: boolean }) {
+export function DashboardContent() {
   const [summary, setSummary] = useState<DashboardSummary>(defaultSummary);
   const [progress, setProgress] = useState<ProgressPoint[]>(defaultProgress);
-  const [pareto, setPareto] = useState<ParetoPoint[]>(useStaticFallback ? demoPareto : []);
+  const [pareto, setPareto] = useState<ParetoPoint[]>([]);
   const [samples, setSamples] = useState<SampleRow[]>([]);
-  const [latest, setLatest] = useState<PredictionRow | null>(() =>
-    useStaticFallback
-      ? {
-          id: 0,
-          sample_id: "SAMP123",
-          predicted_activity: 8.5,
-          predicted_mic: 2.4,
-          resistance_prediction: "Intermediate",
-          risk_level: "Moderate",
-          created_at: null,
-        }
-      : null
-  );
-  const [loading, setLoading] = useState(!useStaticFallback);
+  const [latest, setLatest] = useState<PredictionRow | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [genBusy, setGenBusy] = useState(false);
 
   const load = useCallback(async () => {
-    if (useStaticFallback) return;
     setLoading(true);
     setError(null);
     try {
@@ -76,29 +56,34 @@ export function DashboardContent({ useStaticFallback = false }: { useStaticFallb
       setSummary(s);
       setProgress(p.points);
       setPareto(pr.points);
-      setSamples(samp);
+      setSamples(samp.items);
       setLatest(preds[0] ?? null);
     } catch (e) {
       setError(e instanceof ApiError ? e.body : String(e));
     } finally {
       setLoading(false);
     }
-  }, [useStaticFallback]);
+  }, []);
 
   useEffect(() => {
     void load();
   }, [load]);
 
+  useEffect(() => {
+    return subscribeDataUpdated(() => {
+      void load();
+    });
+  }, [load]);
+
   const onGenerate = async () => {
-    if (useStaticFallback) {
-      setPareto(demoPareto);
-      return;
-    }
     setGenBusy(true);
+    setError(null);
     try {
       const r = await api.generateCandidates();
       setPareto(r.pareto);
-      await load();
+      if (r.refresh_required) {
+        publishDataUpdated("candidates-generated");
+      }
     } catch (e) {
       setError(e instanceof ApiError ? e.body : String(e));
     } finally {
@@ -106,7 +91,7 @@ export function DashboardContent({ useStaticFallback = false }: { useStaticFallb
     }
   };
 
-  if (loading && !useStaticFallback) {
+  if (loading) {
     return <p className="text-sm text-neutral-500">Loading dashboard…</p>;
   }
 

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 const features = [
-  { title: "Resistance Prediction", desc: "Rule-based inference with stored metrics.", icon: Activity },
+  { title: "Resistance Prediction", desc: "Live ML inference backed by trained models.", icon: Activity },
   { title: "Compound Generation", desc: "Generate candidate rows and Pareto points.", icon: Layers },
   { title: "Data Management", desc: "CSV/XLSX uploads with validation.", icon: Database },
 ];
@@ -19,17 +19,12 @@ export default function LandingPage() {
           ANTIBACTERIAL GENERATION AND RESISTANCE PREDICTION PLATFORM
         </h2>
         <p className="mt-4 max-w-2xl text-neutral-600">
-          A minimal, elegant red dashboard for ingestion, candidate generation, and resistance prediction — built for
-          rapid iteration and future real ML.
+          A minimal, elegant red dashboard for ingestion, candidate generation, and live antibacterial resistance
+          prediction.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link href="/dashboard">
             <Button size="lg">Launch Dashboard</Button>
-          </Link>
-          <Link href="/demo">
-            <Button variant="outline" size="lg">
-              View Demo
-            </Button>
           </Link>
         </div>
       </div>

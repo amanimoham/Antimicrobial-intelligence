@@ -8,7 +8,9 @@ import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ApiError, api } from "@/lib/api";
-import type { PredictionRow } from "@/types/api";
+import { publishDataUpdated, subscribeDataUpdated } from "@/lib/data-refresh";
+import type { PredictResponse, PredictionRow } from "@/types/api";
+import { PredictionEngineCard } from "@/components/PredictionEngineCard";
 
 const predictSchema = z.object({
   sample_id: z.string().min(1, "Required"),
@@ -17,10 +19,16 @@ const predictSchema = z.object({
 
 type PredictForm = z.infer<typeof predictSchema>;
 
+function predictionMeta(row: PredictResponse | PredictionRow | null): Partial<PredictResponse> {
+  return (row ?? {}) as Partial<PredictResponse>;
+}
+
 export default function PredictionsPage() {
   const [rows, setRows] = useState<PredictionRow[]>([]);
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [predicting, setPredicting] = useState(false);
+  const [latest, setLatest] = useState<PredictResponse | PredictionRow | null>(null);
 
   const { register, handleSubmit, formState } = useForm<PredictForm>({
     resolver: zodResolver(predictSchema),
@@ -30,7 +38,17 @@ export default function PredictionsPage() {
   const load = async () => {
     setLoading(true);
     try {
-      setRows(await api.predictions());
+      const list = await api.predictions();
+      setRows(list);
+      setLatest((prev) => {
+        const head = list[0] ?? null;
+        if (!head) return null;
+        if (prev && prev.id === head.id) {
+          const meta = predictionMeta(prev);
+          return { ...head, model_source: meta.model_source, resistance_score: meta.resistance_score };
+        }
+        return head;
+      });
       setErr(null);
     } catch (e) {
       setErr(e instanceof ApiError ? e.body : String(e));
@@ -43,12 +61,41 @@ export default function PredictionsPage() {
     void load();
   }, []);
 
+  useEffect(() => {
+    return subscribeDataUpdated(() => {
+      void load();
+    });
+  }, []);
+
   const onPredict = handleSubmit(async (values) => {
+    setPredicting(true);
+    setErr(null);
+    setLatest(null); // Clear stale card values while new prediction is running.
     try {
-      await api.predict(values.sample_id, values.bacteria_name || undefined);
-      await load();
+      const response = await api.predict(values.sample_id, values.bacteria_name || undefined);
+      const latestRow: PredictResponse = {
+        id: response.id,
+        sample_id: response.sample_id,
+        predicted_activity: response.predicted_activity,
+        predicted_mic: response.predicted_mic,
+        resistance_prediction: response.resistance_prediction,
+        risk_level: response.risk_level,
+        created_at: response.created_at,
+        resistance_score: response.resistance_score,
+        model_source: response.model_source,
+        refresh_required: response.refresh_required,
+      };
+      setLatest(latestRow);
+      setRows((prev) => [latestRow, ...prev.filter((r) => r.id !== latestRow.id)]);
+      if (response.refresh_required) {
+        publishDataUpdated("prediction");
+        void load();
+      }
     } catch (e) {
+      setLatest(null);
       setErr(e instanceof ApiError ? e.body : String(e));
+    } finally {
+      setPredicting(false);
     }
   });
 
@@ -67,13 +114,16 @@ export default function PredictionsPage() {
             placeholder="bacteria (optional)"
             {...register("bacteria_name")}
           />
-          <Button type="submit" disabled={formState.isSubmitting}>
-            Run prediction
+          <Button type="submit" disabled={formState.isSubmitting || predicting}>
+            {predicting ? "Running..." : "Run prediction"}
           </Button>
         </form>
         {formState.errors.sample_id && (
           <p className="mt-2 text-sm text-red-600">{formState.errors.sample_id.message}</p>
         )}
+        <div className="mt-4">
+          <PredictionEngineCard prediction={latest} />
+        </div>
         {err && <p className="mt-3 text-sm text-red-700">{err}</p>}
         {loading ? (
           <p className="mt-4 text-sm text-neutral-500">Loading…</p>

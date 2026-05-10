@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.models.prediction import Prediction
 from app.models.sample import Sample
-from app.services.prediction_service import predict_from_sample
+from app.ml.inference_service import infer_scores
 
 router = APIRouter(tags=["predict"])
 
@@ -24,7 +24,15 @@ def predict_endpoint(body: PredictBody, db: Session = Depends(get_db)) -> dict:
     if bacteria is None:
         raise HTTPException(status_code=400, detail="Provide bacteria_name or upload a sample with this sample_id")
 
-    act, mic, label, risk = predict_from_sample(body.sample_id, bacteria, sample_type)
+    source = sample.batch_id if sample else None
+    try:
+        pred = infer_scores(body.sample_id, sample_type, bacteria, source)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    act = pred["activity_score"]
+    mic = pred["mic_score"]
+    label = pred["resistance_class"]
+    risk = pred["risk_level"]
     rec = Prediction(
         sample_id=body.sample_id,
         predicted_activity=act,
@@ -43,4 +51,7 @@ def predict_endpoint(body: PredictBody, db: Session = Depends(get_db)) -> dict:
         "resistance_prediction": rec.resistance_prediction,
         "risk_level": rec.risk_level,
         "created_at": rec.created_at.isoformat() if rec.created_at else None,
+        "resistance_score": pred["resistance_score"],
+        "model_source": pred["model_source"],
+        "refresh_required": True,
     }

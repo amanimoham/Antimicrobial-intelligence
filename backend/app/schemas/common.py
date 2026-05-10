@@ -52,3 +52,7 @@ class UploadResponse(BaseModel):
     message: str
     rows_inserted: int
     preview: list[dict[str, Any]]
+    refresh_required: bool = True
+    totals: dict[str, int] | None = None
+    parsing_summary: dict[str, Any] | None = None
+    upload_job: dict[str, Any] | None = None
