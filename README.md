@@ -275,3 +275,4 @@ Required Render environment variables:
 - `CORS_ORIGINS` (comma-separated frontend domains, e.g. `https://your-frontend.vercel.app`)
 - Optional `CORS_ORIGIN_REGEX` (default allows local `localhost/127.0.0.1` dev ports)
 # hack
+# hack
